@@ -1,9 +1,12 @@
+from pathlib import Path
+from datetime import datetime
+import json
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
-import json
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -11,6 +14,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
+data_path = Path("data.json")
 
 
 @app.get("/")
@@ -18,7 +22,7 @@ async def timer_list(request: Request):
     """
     Returns a pretty page of countdown timers
     """
-    data = get_data(Path("data.json"))
+    data = get_data(data_path)
     return templates.TemplateResponse("index.html", {"request": request, "data": data})
 
 
@@ -58,11 +62,27 @@ async def read_items():
     """
 
 
-@app.get("/api/")
-def read_root():
-    return {"Hello": "World"}
+class CountdownItem(BaseModel):
+    name: str
+    date: datetime
+    text: str
+    delta_in_ms: int
 
 
-@app.get("/api/items/{item_id}")
+@app.get("/api/items/")
+def list_items():
+    """Get a list of what we are timing"""
+    return get_data(data_path)
+
+
+@app.get("/api/items/{item_id}", response_model=CountdownItem)
 def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+    """Get a single item and show the details"""
+    data = get_data(data_path)
+    item = data[item_id]
+    item["date"] = datetime.fromisoformat(item["date"])
+    now = datetime.now()
+    delta_in_ms = item["date"] - now
+    item["delta_in_ms"] = delta_in_ms.total_seconds()
+    citem = CountdownItem(**item)
+    return citem
