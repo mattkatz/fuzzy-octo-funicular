@@ -31,21 +31,15 @@ def get_data(path: Path):
     return data
 
 
-@app.get("/items/{item_id}", response_class=HTMLResponse)
-def read_item(item_id: int, q: str = None):
-    return f"""
-<html>
-<head>
-<title>A specific item</title>
-<body>
-<h1>That Item number {item_id}</h1>
-<div>
-Looks like we have item number {item_id}!
-</div>
-</body>
-</head>
-</html>
-"""
+def get_item(item_id: int):
+    data = get_data(data_path)
+    return data[item_id]
+
+
+@app.get("/items/{item_id}")
+def read_item(request: Request, item_id: int, q: str = None):
+    item = get_item(item_id)
+    return templates.TemplateResponse("item.html", {"request": request, "data": [item]})
 
 
 @app.get("/items/", response_class=HTMLResponse)
@@ -78,8 +72,7 @@ def list_items():
 @app.get("/api/items/{item_id}", response_model=CountdownItem)
 def read_item(item_id: int, q: str = None):
     """Get a single item and show the details"""
-    data = get_data(data_path)
-    item = data[item_id]
+    item = get_item(item_id)
     item["date"] = datetime.fromisoformat(item["date"])
     now = datetime.now()
     delta_in_ms = item["date"] - now
