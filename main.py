@@ -1,3 +1,6 @@
+"""
+This is a silly little countdown timer page I made to test FastApi
+"""
 from pathlib import Path
 from datetime import datetime
 import json
@@ -15,6 +18,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 data_path = Path("data.json")
+
+class CountdownItem(BaseModel):
+    name: str
+    date: datetime
+    text: str
+    delta_in_ms: int
 
 
 @app.get("/")
@@ -37,30 +46,12 @@ def get_item(item_id: int):
 
 
 @app.get("/items/{item_id}")
-def read_item(request: Request, item_id: int, q: str = None):
+def single_timer(request: Request, item_id: int, q: str = None):
+    """
+    Bring up a single item countdown timer in html format.
+    """
     item = get_item(item_id)
     return templates.TemplateResponse("item.html", {"request": request, "data": [item]})
-
-
-@app.get("/items/", response_class=HTMLResponse)
-async def read_items():
-    return """
-    <html>
-        <head>
-            <title>Some HTML in here</title>
-        </head>
-        <body>
-            <h1>Look ma! HTML!</h1>
-        </body>
-    </html>
-    """
-
-
-class CountdownItem(BaseModel):
-    name: str
-    date: datetime
-    text: str
-    delta_in_ms: int
 
 
 @app.get("/api/items/")

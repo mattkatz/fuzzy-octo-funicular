@@ -11,13 +11,12 @@
     <ul class="timer-list">
       {% for item in data %}
       <li class="timer-box">
-        <div><a href="{{ url_for('read_item', item_id=loop.index0) }}">{{ item.name }}</a></div>
+        <div><a href="{{ url_for('single_timer', item_id=loop.index0) }}">{{ item.name }}</a></div>
         <div>{{ item.date }}</div>
         <div id="timer{{ loop.index0 }}" class="timer" data-date="{{ item.date }}"></div>
         <div>{{ item.text }}</div>
       </li>
       {% endfor %}
     </ul>
-    <footer>You can also check the <a href="/redoc">api documentation</a>.</footer>
-  </body>
+    <footer>You can also check the <a href="/redoc">api documentation</a> or an <a href="/docs">easy api playground</a>.</footer>
 </html>
